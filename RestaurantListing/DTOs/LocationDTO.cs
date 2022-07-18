@@ -10,7 +10,7 @@ namespace RestaurantListing.Core.DTOs
         public string Country { get; set; }
         [Required]
         [StringLength(maximumLength: 50, ErrorMessage = "CIty Name Is Too Long")]
-        public string City { get; set; }
+        public string Address { get; set; }
         [Required]
         public int RestaurantId { get; set; }
 
