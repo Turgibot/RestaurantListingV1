@@ -20,6 +20,10 @@ namespace RestaurantListing.DTOs
             CreateMap<Dish, CreateDishDTO>().ReverseMap();
             CreateMap<Dish, UpdateDishDTO>().ReverseMap();
 
+            // map user
+            CreateMap<ApiUser, RegisterUserDTO>().ReverseMap();
+
+
         }
     }
 }

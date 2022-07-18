@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace RestaurantListing.Data
 {
-    public class DatabaseContext :DbContext
+    public class DatabaseContext :IdentityDbContext<ApiUser>
     {
         public DatabaseContext(DbContextOptions options): base(options){ }
         
@@ -11,7 +12,6 @@ namespace RestaurantListing.Data
         public DbSet<Location> Locations{ get; set; }
         public DbSet<Dish> Dishes{ get; set; }
 
-
-    
+           
     }
 }

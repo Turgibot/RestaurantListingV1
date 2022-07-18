@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using RestaurantListing.Data;
 using RestaurantListing.DTOs;
 using RestaurantListing.Repositories;
+using RestaurantListing.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +37,8 @@ namespace RestaurantListing
                     Configuration.GetConnectionString("sqlConnection")
                     )
                 );
-
+            services.AddAuthentication();
+            services.AddIdentityConfiguration();
 
 
             services.AddCors(
