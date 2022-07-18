@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using RestaurantListing.Data;
+using RestaurantListing.DTOs;
 using RestaurantListing.Repositories;
 using System;
 using System.Collections.Generic;
@@ -46,6 +47,8 @@ namespace RestaurantListing
                       builder.AllowAnyHeader();
                   })
                 ); ;
+
+            services.AddAutoMapper(typeof(MapperInitializer));
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
