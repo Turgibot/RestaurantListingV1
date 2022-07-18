@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using RestaurantListing.Data;
-using RestaurantListing.IoC;
+using RestaurantListing.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +34,7 @@ namespace RestaurantListing
                 options => options.UseSqlServer(
                     Configuration.GetConnectionString("sqlConnection")
                     )
-                ); 
+                );
 
 
 
@@ -45,8 +45,9 @@ namespace RestaurantListing
                       builder.AllowAnyMethod();
                       builder.AllowAnyHeader();
                   })
+                ); ;
 
-                ); 
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
 
 
             services.AddControllers();
