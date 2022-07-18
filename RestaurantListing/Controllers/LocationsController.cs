@@ -29,6 +29,8 @@ namespace RestaurantListing.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetLocations()
         {
             try
@@ -46,5 +48,35 @@ namespace RestaurantListing.Controllers
                 return BadRequest(ex);
             }
         }
+
+        [HttpGet("{id:int}")]
+        //[Route("{id:int}")]
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+
+        public async Task<IActionResult> GetLocation(int id)
+        {
+            try
+            {
+                //l => l.Include(l1 => l1.Restaurant);
+                var location = await _unitOfWork.Locations.Get(
+                    include: l => l.Include(l1 => l1.Restaurant),
+                    expression: c => c.Id == id
+                    ) ;
+                var mapped = _mapper.Map<LocationDTO>(location);
+                return Ok(mapped);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"ERROR IN METHOD {nameof(GetLocation)}");
+                return BadRequest(ex);
+            }
+        }
+
+
     }
+
+
 }
