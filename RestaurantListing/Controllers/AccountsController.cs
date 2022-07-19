@@ -20,8 +20,8 @@ namespace RestaurantListing.Controllers
         private readonly IMapper _mapper;
         private readonly UserManager<ApiUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly AuthManager _authManager;
-        public AccountsController(ILogger<AccountsController> logger, IMapper mapper, UserManager<ApiUser> userManager, RoleManager<IdentityRole> roleManager, AuthManager authManager)
+        private readonly IAuthManager _authManager;
+        public AccountsController(ILogger<AccountsController> logger, IMapper mapper, UserManager<ApiUser> userManager, RoleManager<IdentityRole> roleManager, IAuthManager authManager)
         {
             _logger = logger;
             _mapper = mapper;
@@ -29,6 +29,13 @@ namespace RestaurantListing.Controllers
             _roleManager = roleManager;
             _authManager = authManager;
         }
+
+        [HttpPost]
+        [Route("login")]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUserDto)
         {
 
