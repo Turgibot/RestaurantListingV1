@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace RestaurantListing.Controllers
 {
+ 
     [Route("api/[controller]")]
     [ApiController]
     public class DishesController : ControllerBase
@@ -26,7 +28,7 @@ namespace RestaurantListing.Controllers
             _logger = logger;
             _mapper = mapper;
         }
-
+        [Authorize(Roles ="User")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

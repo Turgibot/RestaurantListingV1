@@ -53,7 +53,7 @@ namespace RestaurantListing.Controllers
                 }
                 //before refreshing a token simplt return the token in the accepted method
                 //anonymous object new {sdsd= dsds}
-                return Accepted(new { Token = _authManager.CreateToken() });
+                return Accepted(new { Token =  await _authManager.CreateToken() });
             }
             catch (Exception ex)
             {
