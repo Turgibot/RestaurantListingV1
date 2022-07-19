@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RestaurantListing.Core.DTOs;
+using RestaurantListing.Data;
 using RestaurantListing.Repositories;
 using System;
 using System.Collections;
@@ -76,7 +77,87 @@ namespace RestaurantListing.Controllers
         }
 
 
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
+        public async Task<IActionResult> CreateLocation([FromBody] CreateLocationDTO locationDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogError($"Invalid POST attempt in {nameof(CreateLocation)}");
+                return BadRequest(ModelState);
+            }
+
+            var location = _mapper.Map<Location>(locationDTO);
+            await _unitOfWork.Locations.Insert(location);
+            await _unitOfWork.Save();
+
+            return CreatedAtRoute("GetLocation", new { id = location.Id }, location);
+
+        }
+
+
+
+
+        // [Authorize]
+        [HttpPut("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateLocation(int id, [FromBody] UpdateLocationDTO locationDTO)
+        {
+            if (!ModelState.IsValid || id <= 0)
+            {
+                _logger.LogError($"Invalid UPDATE attempt in {nameof(UpdateLocation)}");
+                return BadRequest(ModelState);
+            }
+
+            var location = await _unitOfWork.Locations.Get(q => q.Id == id);
+            if (location == null)
+            {
+                _logger.LogError($"Invalid UPDATE attempt in {nameof(UpdateLocation)}");
+                return BadRequest("Submitted data is invalid");
+            }
+
+            _mapper.Map(locationDTO, location);
+            _unitOfWork.Locations.Update(location);
+            await _unitOfWork.Save();
+
+            return NoContent();
+
+        }
+
+
+        //[Authorize]
+        [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteLocation(int id)
+        {
+            if (id <= 0)
+            {
+                _logger.LogError($"Invalid DELETE attempt in {nameof(DeleteLocation)}");
+                return BadRequest();
+            }
+
+            var location = await _unitOfWork.Locations.Get(q => q.Id == id);
+            if (location == null)
+            {
+                _logger.LogError($"Invalid DELETE attempt in {nameof(DeleteLocation)}");
+                return BadRequest("Submitted data is invalid");
+            }
+
+            await _unitOfWork.Locations.Delete(id);
+            await _unitOfWork.Save();
+
+            return StatusCode(StatusCodes.Status202Accepted, location);
+
+        }
     }
 
-
 }
+
+
