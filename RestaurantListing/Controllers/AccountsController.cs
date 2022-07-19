@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using RestaurantListing.Data;
 using RestaurantListing.DTOs;
+using RestaurantListing.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,14 +20,41 @@ namespace RestaurantListing.Controllers
         private readonly IMapper _mapper;
         private readonly UserManager<ApiUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-
-        public AccountsController(ILogger<AccountsController> logger, IMapper mapper, UserManager<ApiUser> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly AuthManager _authManager;
+        public AccountsController(ILogger<AccountsController> logger, IMapper mapper, UserManager<ApiUser> userManager, RoleManager<IdentityRole> roleManager, AuthManager authManager)
         {
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
             _roleManager = roleManager;
+            _authManager = authManager;
         }
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUserDto)
+        {
+
+            _logger.LogInformation($"Registration Attempt for {loginUserDto.Email} ");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (!await _authManager.ValidateUser(loginUserDto))
+                {
+                    return Unauthorized();
+                }
+                //before refreshing a token simplt return the token in the accepted method
+                //anonymous object new {sdsd= dsds}
+                return Accepted(new { Token = _authManager.CreateToken() });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Something Went Wrong in the {nameof(Login)}");
+                return Problem($"Something Went Wrong in the {nameof(Login)}", statusCode: 500);
+            }
+        }
+
 
         [HttpPost]
         [Route("register")]
