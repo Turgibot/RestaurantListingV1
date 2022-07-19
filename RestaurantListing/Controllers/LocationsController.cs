@@ -2,14 +2,16 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using RestaurantListing.Core.DTOs;
 using RestaurantListing.Data;
 using RestaurantListing.Repositories;
+using RestaurantListing.Services;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RestaurantListing.Controllers
@@ -21,34 +23,63 @@ namespace RestaurantListing.Controllers
         private readonly ILogger<LocationsController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
-        public LocationsController(ILogger<LocationsController> logger, IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IMemoryCache _cache;
+        private readonly CachingProperties _cachingProperties;
+        
+        private const string locationsCacheKey = "locationsList";
+        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        public LocationsController(ILogger<LocationsController> logger, IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache cache, CachingProperties cachingProperties)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _cache = cache;
+            _cachingProperties = cachingProperties;
         }
 
+        [ResponseCache]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetLocations()
         {
-            try
+
+            _logger.LogInformation("Trying to retrieve locations from cache");
+            if (_cache.TryGetValue(locationsCacheKey, out IEnumerable<LocationDTO> locations))
             {
-                //l => l.Include(l1 => l1.Restaurant);
-                var locations = await _unitOfWork.Locations.GetAll(orderBy: x => x.OrderBy(c => c.Address),
-                    include: l => l.Include(l1 => l1.Restaurant)
-                    ); 
-                var mapped = _mapper.Map<IList<LocationDTO>>(locations);
-                return Ok(mapped);
+                _logger.LogInformation("locations found in cache");
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, $"ERROR IN METHOD {nameof(GetLocations)}");
-                return BadRequest(ex);
+                if (_cache.TryGetValue(locationsCacheKey, out locations))
+                {
+                    _logger.LogInformation("locations found in cache");
+                }
+                else
+                {
+                    await semaphore.WaitAsync();
+
+                    locations = await GetLocationsAndSetInCacheAsync();
+                    semaphore.Release();
+                }
+
             }
+            return Ok(locations);
         }
+
+        private async Task<IEnumerable<LocationDTO>> GetLocationsAndSetInCacheAsync()
+        {
+
+            _logger.LogInformation("locations not found in cache - Fetching from DB");
+            var currLocations = await _unitOfWork.Locations.GetAll(orderBy: x => x.OrderBy(c => c.Address),
+               include: l => l.Include(l1 => l1.Restaurant));
+
+            var locations = _mapper.Map<IList<LocationDTO>>(currLocations);
+            _cache.Set(locationsCacheKey, locations, _cachingProperties.CacheOptions);
+            return locations;
+        }
+
+
 
         [HttpGet("{id:int}")]
         //[Route("{id:int}")]
@@ -65,7 +96,7 @@ namespace RestaurantListing.Controllers
                 var location = await _unitOfWork.Locations.Get(
                     include: l => l.Include(l1 => l1.Restaurant),
                     expression: c => c.Id == id
-                    ) ;
+                    );
                 var mapped = _mapper.Map<LocationDTO>(location);
                 return Ok(mapped);
             }
@@ -91,8 +122,13 @@ namespace RestaurantListing.Controllers
             }
 
             var location = _mapper.Map<Location>(locationDTO);
+
+            await semaphore.WaitAsync();
+
             await _unitOfWork.Locations.Insert(location);
             await _unitOfWork.Save();
+
+            semaphore.Release();
 
             return CreatedAtRoute("GetLocation", new { id = location.Id }, location);
 

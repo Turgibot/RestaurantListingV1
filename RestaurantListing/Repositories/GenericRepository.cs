@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using RestaurantListing.Data;
+using RestaurantListing.Data.Helpers;
+using RestaurantListing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,7 +65,7 @@ namespace RestaurantListing.Repositories
 
         }
 
-        public async Task Insert(T entity)
+       public async Task Insert(T entity)
         {
             await _db.AddAsync(entity);
         }
@@ -77,6 +79,41 @@ namespace RestaurantListing.Repositories
         {
             _db.Attach(entity);
             _databaseContext.Entry(entity).State = EntityState.Modified;
+        }
+
+        public async Task<IList<T>> GetAllPaginated(PagingParams pagingParams, Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+        {
+            IQueryable<T> query = _db;
+
+            if (expression != null)
+                query = query.Where(expression);
+            if (include != null)
+                query = include(query);
+            if (orderBy != null)
+                query = orderBy(query);
+
+            
+
+            return await query
+                .Skip((pagingParams.PageNumber - 1) * pagingParams.PageSize)
+                .Take(pagingParams.PageSize)
+                .AsNoTracking().ToListAsync();
+        }
+
+        public async Task<PagedList<T>> GetAllPaginatedImproved(PagingParams pagingParams, Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+        {
+            IQueryable<T> query = _db;
+
+            if (expression != null)
+                query = query.Where(expression);
+            if (include != null)
+                query = include(query);
+            if (orderBy != null)
+                query = orderBy(query);
+
+
+           return await PagedList<T>.ToPagedListAsync(query, pagingParams.PageNumber, pagingParams.PageSize);
+
         }
     }
 }

@@ -37,6 +37,10 @@ namespace RestaurantListing
                     Configuration.GetConnectionString("sqlConnection")
                     )
                 );
+
+            services.AddMemoryCache();
+            services.AddResponseCaching();
+
             services.AddAuthentication();
             services.AddIdentityConfiguration();
 
@@ -59,6 +63,8 @@ namespace RestaurantListing
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<IAuthManager, AuthManager>();
+
+            services.AddSingleton<CachingProperties>();
 
             services.AddControllers().AddNewtonsoftJson(
                 op => op.SerializerSettings.ReferenceLoopHandling =
@@ -88,6 +94,8 @@ namespace RestaurantListing
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseResponseCaching();
             
             app.UseAuthentication();
 

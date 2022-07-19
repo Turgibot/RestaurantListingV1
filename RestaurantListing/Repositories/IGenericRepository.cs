@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
+using RestaurantListing.Data.Helpers;
+using RestaurantListing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,20 @@ namespace RestaurantListing.Repositories
     public interface IGenericRepository<T> where T : class
     {
         Task<IList<T>> GetAll(
+            Expression<Func<T, bool>> expression = null,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null
+            );
+
+        Task<IList<T>> GetAllPaginated(
+            PagingParams pagingParams,
+            Expression<Func<T, bool>> expression = null,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null
+            );
+
+        Task<PagedList<T>> GetAllPaginatedImproved(
+            PagingParams pagingParams,
             Expression<Func<T, bool>> expression = null,
             Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
             Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null
