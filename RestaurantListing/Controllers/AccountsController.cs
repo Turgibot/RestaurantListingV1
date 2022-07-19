@@ -18,12 +18,14 @@ namespace RestaurantListing.Controllers
         private readonly ILogger<AccountsController> _logger;
         private readonly IMapper _mapper;
         private readonly UserManager<ApiUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AccountsController(ILogger<AccountsController> logger, IMapper mapper, UserManager<ApiUser> userManager)
+        public AccountsController(ILogger<AccountsController> logger, IMapper mapper, UserManager<ApiUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [HttpPost]
@@ -46,19 +48,142 @@ namespace RestaurantListing.Controllers
                 var resultRoles = await _userManager.AddToRolesAsync(user, regUserDto.Roles);
                 if (!resultCreate.Succeeded || !resultRoles.Succeeded)
                 {
-                    foreach (var error in resultCreate.Errors.Concat(resultRoles.Errors))
+                    foreach (var error in resultCreate.Errors.
+                        Concat(resultRoles.Errors))
                     {
                         ModelState.AddModelError(error.Code, error.Description);
                     }
                     return BadRequest(ModelState);
                 }
 
-                return StatusCode(StatusCodes.Status201Created, "❤ User with roles 😎 Created Successfully");
+                return StatusCode(StatusCodes.Status201Created, "❤ User with roles �� Created Successfully");
             }catch(Exception ex)
             {
                 _logger.LogError(ex, $"Something Went Wrong in the {nameof(Register)}");
                 return Problem($"Something Went Wrong in the {nameof(Register)}", statusCode: StatusCodes.Status500InternalServerError);
             }
+        }
+
+
+        [HttpPost]
+        [Route("AddUserToRole")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AddUserToRole([FromQuery] string email, [FromQuery] string roleName)
+        {
+            // Check if the user exist
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null) // User does not exist
+            {
+                _logger.LogInformation($"The user with the {email} does not exist");
+                return BadRequest(new
+                {
+                    error = "User does not exist"
+                });
+            }
+
+            // Check if the role exist
+            // Check if the role exist
+            var roleExist = await _roleManager.RoleExistsAsync(roleName);
+
+            if (!roleExist) // checks on the role exist status
+            {
+                _logger.LogInformation($"The role {email} does not exist");
+                return BadRequest(new
+                {
+                    error = "Role does not exist"
+                });
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, roleName);
+
+            // Check if the user is assigned to the role successfully
+            if (result.Succeeded)
+            {
+                return Ok(new
+                {
+                    result = "Success, user has been added to the role"
+                })
+                ;
+            }
+            else
+            {
+                _logger.LogInformation($"The user was not abel to be added to the role");
+                return BadRequest(new
+                {
+                    error = "The user was not abel to be added to the role"
+                });
+            }
+
+        }
+
+        [HttpGet]
+        [Route("GetUserRoles")]
+        public async Task<IActionResult> GetUserRoles([FromQuery] string email)
+        {
+            // check if the email is valid
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null) // User does not exist
+            {
+                _logger.LogInformation($"The user with the {email} does not exist");
+                return BadRequest(new
+                {
+                    error = "User does not exist"
+                });
+            }
+
+            // return the roles
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Ok(roles);
+        }
+
+        [HttpPost]
+        [Route("RemoveUserFromRole")]
+        public async Task<IActionResult> RemoveUserFromRole([FromQuery] string email, [FromQuery] string roleName)
+        {
+            // Check if the user exist
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null) // User does not exist
+            {
+                _logger.LogInformation($"The user with the {email} does not exist");
+                return BadRequest(new
+                {
+                    error = "User does not exist"
+                });
+            }
+
+            // Check if the role exist
+            var roleExist = await _roleManager.RoleExistsAsync(roleName);
+
+            if (!roleExist) // checks on the role exist status
+            {
+                _logger.LogInformation($"The role {roleName} does not exist");
+                return BadRequest(new
+                {
+                    error = "Role does not exist"
+                });
+            }
+
+            var result = await _userManager.RemoveFromRoleAsync(user, roleName);
+
+            if (result.Succeeded)
+            {
+                return Ok(new
+                {
+                    result = $"User {email} has been removed from role {roleName}"
+                });
+            }
+
+            return BadRequest(new
+            {
+                error = $"Unable to remove User {email} from role {roleName}"
+            });
         }
     }
 }
