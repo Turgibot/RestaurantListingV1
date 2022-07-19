@@ -103,7 +103,7 @@ namespace RestaurantListing.Services
                         Error error = new Error
                         {
                             StatusCode = context.Response.StatusCode,
-                            Message = "Internal Server Error. Please Try Again Later."
+                            Message = "(Global)Internal Server Error. Please Try Again Later."
                         };
                         await context.Response.WriteAsync(error.ToString());
                     }

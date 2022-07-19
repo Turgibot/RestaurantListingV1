@@ -53,7 +53,7 @@ namespace RestaurantListing.Controllers
                 }
                 //before refreshing a token simplt return the token in the accepted method
                 //anonymous object new {sdsd= dsds}
-                return Accepted(new { Token =  await _authManager.CreateToken() });
+                return Accepted(new { Token = await _authManager.CreateToken() });
             }
             catch (Exception ex)
             {
@@ -66,37 +66,32 @@ namespace RestaurantListing.Controllers
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register
-            ([FromBody]RegisterUserDTO regUserDto)
+            ([FromBody] RegisterUserDTO regUserDto)
         {
-            try
+            
+            _logger.LogInformation($"Registration attempt for user email {regUserDto.Email}");
+            if (!ModelState.IsValid)
             {
-                _logger.LogInformation($"Registration attempt for user email {regUserDto.Email}");
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                ApiUser user = _mapper.Map<ApiUser>(regUserDto);
-                user.UserName = regUserDto.Email;
-                user.PhoneNumber = regUserDto.MobileNumber;
-
-                var resultCreate = await _userManager.CreateAsync(user, regUserDto.Password);
-                var resultRoles = await _userManager.AddToRolesAsync(user, regUserDto.Roles);
-                if (!resultCreate.Succeeded || !resultRoles.Succeeded)
-                {
-                    foreach (var error in resultCreate.Errors.
-                        Concat(resultRoles.Errors))
-                    {
-                        ModelState.AddModelError(error.Code, error.Description);
-                    }
-                    return BadRequest(ModelState);
-                }
-
-                return StatusCode(StatusCodes.Status201Created, "❤ User with roles �� Created Successfully");
-            }catch(Exception ex)
-            {
-                _logger.LogError(ex, $"Something Went Wrong in the {nameof(Register)}");
-                return Problem($"Something Went Wrong in the {nameof(Register)}", statusCode: StatusCodes.Status500InternalServerError);
+                return BadRequest(ModelState);
             }
+            ApiUser user = _mapper.Map<ApiUser>(regUserDto);
+            user.UserName = regUserDto.Email;
+            user.PhoneNumber = regUserDto.MobileNumber;
+
+            var resultCreate = await _userManager.CreateAsync(user, regUserDto.Password);
+            var resultRoles = await _userManager.AddToRolesAsync(user, regUserDto.Roles);
+            if (!resultCreate.Succeeded || !resultRoles.Succeeded)
+            {
+                foreach (var error in resultCreate.Errors.
+                    Concat(resultRoles.Errors))
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+                return BadRequest(ModelState);
+            }
+
+            return StatusCode(StatusCodes.Status201Created, "❤ User with roles �� Created Successfully");
+
         }
 
 
