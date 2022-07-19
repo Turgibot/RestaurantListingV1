@@ -28,10 +28,11 @@ namespace RestaurantListing.Services
 
         }
 
-        public static void AddJWTAuthentication(this IServiceCollection services, IConfiguration Configuration)
+        public static void AddJWTAuthentication(this IServiceCollection services,
+            IConfiguration Configuration)
         {
             var jwtSettings = Configuration.GetSection("Jwt");
-            var key = Environment.GetEnvironmentVariable("KEY");
+            var key = jwtSettings.GetSection("KEY").Value;
 
             services.AddAuthentication(o =>
             {

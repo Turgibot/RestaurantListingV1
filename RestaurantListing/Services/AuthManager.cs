@@ -50,7 +50,7 @@ namespace RestaurantListing.Services
         {
             //to create the token we need to add the ket and to decide on hashing algorithm
             // get the key from the system environment variable
-            var key = Environment.GetEnvironmentVariable("KEY");
+            var key = _configuration.GetSection("Jwt").GetSection("KEY").Value;
             // encode it as a byte array that's why we use UTF8
             var secret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             //generate the token

@@ -40,6 +40,7 @@ namespace RestaurantListing
             services.AddAuthentication();
             services.AddIdentityConfiguration();
 
+            services.AddJWTAuthentication(Configuration);
 
             services.AddCors(
                   op => op.AddPolicy("AllowAll", builder =>
@@ -54,6 +55,7 @@ namespace RestaurantListing
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
+            services.AddScoped<IAuthManager, AuthManager>();
 
             services.AddControllers().AddNewtonsoftJson(
                 op => op.SerializerSettings.ReferenceLoopHandling =
