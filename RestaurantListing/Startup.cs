@@ -40,6 +40,9 @@ namespace RestaurantListing
             services.AddAuthentication();
             services.AddIdentityConfiguration();
 
+            //authorization policies
+            services.AddAutorizationPolicies();
+
             services.AddJWTAuthentication(Configuration);
 
             services.AddCors(
@@ -79,6 +82,8 @@ namespace RestaurantListing
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestaurantListing v1"));
                 
             }
+
+            app.UseCustomeExceptionHandler();
 
             app.UseHttpsRedirection();
 
