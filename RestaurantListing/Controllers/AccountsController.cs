@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using RestaurantListing.Data;
 using RestaurantListing.DTOs;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RestaurantListing.Controllers
@@ -41,18 +42,18 @@ namespace RestaurantListing.Controllers
                 user.UserName = regUserDto.Email;
                 user.PhoneNumber = regUserDto.MobileNumber;
 
-                var result = await _userManager.CreateAsync(user, regUserDto.Password);
-
-                if (!result.Succeeded)
+                var resultCreate = await _userManager.CreateAsync(user, regUserDto.Password);
+                var resultRoles = await _userManager.AddToRolesAsync(user, regUserDto.Roles);
+                if (!resultCreate.Succeeded || !resultRoles.Succeeded)
                 {
-                    foreach (var error in result.Errors)
+                    foreach (var error in resultCreate.Errors.Concat(resultRoles.Errors))
                     {
                         ModelState.AddModelError(error.Code, error.Description);
                     }
                     return BadRequest(ModelState);
                 }
 
-                return StatusCode(StatusCodes.Status201Created, "❤ User Created Successfully");
+                return StatusCode(StatusCodes.Status201Created, "❤ User with roles 😎 Created Successfully");
             }catch(Exception ex)
             {
                 _logger.LogError(ex, $"Something Went Wrong in the {nameof(Register)}");

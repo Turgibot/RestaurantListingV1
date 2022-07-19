@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace RestaurantListing.DTOs
 {
@@ -16,5 +17,7 @@ namespace RestaurantListing.DTOs
         [Required]
         public string Password { get; set; }
         public bool IsPaid { get; set; }
+
+        public ICollection<string> Roles { get; set; }
     }
 }
