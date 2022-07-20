@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 
 namespace RestaurantListing.Controllers
 {
+    //[ApiVersion("1.0")]
+    //[Route("api/{v:apiversion}/[controller]")]
     [Route("api/[controller]")]
     [ApiController]
     public class RestaurantsController : ControllerBase

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -126,7 +127,7 @@ namespace RestaurantListing.Services
 
 
                 //add this line later when showing how to pass version in header
-                // opt.ApiVersionReader = new HeaderApiVersionReader("api-version");
+                opt.ApiVersionReader = new HeaderApiVersionReader("api-version");
             });
         }
 

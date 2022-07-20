@@ -70,13 +70,14 @@ namespace RestaurantListing
                 op => op.SerializerSettings.ReferenceLoopHandling =
                 Newtonsoft.Json.ReferenceLoopHandling.Ignore
                 ); 
+           
+            services.AddVersioning();
 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestaurantListing", Version = "v1" });
             });
 
-            services.AddVersioning();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
