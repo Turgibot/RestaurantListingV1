@@ -25,7 +25,7 @@ namespace RestaurantListing.Controllers
         private readonly IMapper _mapper;
         private readonly IMemoryCache _cache;
         private readonly CachingProperties _cachingProperties;
-        
+
         private const string locationsCacheKey = "locationsList";
         private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         public LocationsController(ILogger<LocationsController> logger, IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache cache, CachingProperties cachingProperties)
@@ -37,7 +37,6 @@ namespace RestaurantListing.Controllers
             _cachingProperties = cachingProperties;
         }
 
-        [ResponseCache]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -51,15 +50,21 @@ namespace RestaurantListing.Controllers
             }
             else
             {
-                if (_cache.TryGetValue(locationsCacheKey, out locations))
-                {
-                    _logger.LogInformation("locations found in cache");
-                }
-                else
+                try
                 {
                     await semaphore.WaitAsync();
+                    if (_cache.TryGetValue(locationsCacheKey, out locations))
+                    {
+                        _logger.LogInformation("locations found in cache");
+                    }
+                    else
+                    {
 
-                    locations = await GetLocationsAndSetInCacheAsync();
+                        locations = await GetLocationsAndSetInCacheAsync();
+                    }
+                }
+                finally
+                {
                     semaphore.Release();
                 }
 
@@ -123,13 +128,20 @@ namespace RestaurantListing.Controllers
 
             var location = _mapper.Map<Location>(locationDTO);
 
-            await semaphore.WaitAsync();
+            try
+            {
+                await semaphore.WaitAsync();
 
-            await _unitOfWork.Locations.Insert(location);
-            await _unitOfWork.Save();
+                await _unitOfWork.Locations.Insert(location);
+                await _unitOfWork.Save();
 
-            semaphore.Release();
+                await GetLocationsAndSetInCacheAsync();
 
+            }
+            finally
+            {
+                semaphore.Release();
+            }
             return CreatedAtRoute("GetLocation", new { id = location.Id }, location);
 
         }

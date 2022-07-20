@@ -35,7 +35,8 @@ namespace RestaurantListing.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetDishes([FromQuery]PagingParams pagingParams )
+        public async Task<IActionResult> GetDishes([FromQuery] PagingParams pagingParams)
+
         {
             //var dishes = await _unitOfWork.Dishes.GetAll(orderBy: o => o.OrderByDescending(d => d.Stars));
             //var dishes = await _unitOfWork.Dishes.GetAllPaginated(pagingParams, orderBy: o => o.OrderByDescending(d => d.Stars));

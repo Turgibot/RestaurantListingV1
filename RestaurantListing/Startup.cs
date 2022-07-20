@@ -39,7 +39,7 @@ namespace RestaurantListing
                 );
 
             services.AddMemoryCache();
-            services.AddResponseCaching();
+            //services.AddResponseCaching();
 
             services.AddAuthentication();
             services.AddIdentityConfiguration();
@@ -75,6 +75,8 @@ namespace RestaurantListing
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestaurantListing", Version = "v1" });
             });
+
+            services.AddVersioning();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -95,12 +97,15 @@ namespace RestaurantListing
 
             app.UseRouting();
 
-            app.UseResponseCaching();
-            
+
             app.UseAuthentication();
 
             app.UseAuthorization();
 
+            app.UseCors();
+
+            //app.UseResponseCaching();
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

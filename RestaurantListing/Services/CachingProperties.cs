@@ -12,6 +12,5 @@ namespace RestaurantListing.Services
                 .SetAbsoluteExpiration(TimeSpan.FromSeconds(600))
                 .SetPriority(CacheItemPriority.Normal)
                 .SetSize(1024);
-
     }
 }
